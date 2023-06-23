@@ -1,0 +1,47 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-service-deployment
+  labels:
+    app: bff-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bff-service
+  template:
+    metadata:
+      labels:
+        app: bff-service
+    spec:
+      containers:
+      - name: bff-service-cont
+        image: bff-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATA_SOURCE_PROTOCOL
+          value: "http"
+        - name: DATA_SOURCE_PORT
+          value: "4000"
+        - name: DATA_SOURCE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: data-service-config
+              key: data-service-host
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bff-service
+spec:
+  type: NodePort
+  selector:
+    app: bff-service
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 31000
