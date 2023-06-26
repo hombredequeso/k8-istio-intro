@@ -1,6 +1,8 @@
-# Running Services Multiple Ways
+# Various Service Deploymen ts
 
-This works through running the same basic system of a pseudo backend-for-front-end api serving up data from another service in 4 different ways:
+This illustrates running the same basic system of a pseudo backend-for-front-end api getting data from a data service in 5 different ways:
+
+* locally
 * docker
 * docker compose
 * kubernetes
@@ -10,16 +12,29 @@ Key features are:
 * work through from what is possibly familar (docker) through to the new thing (istio)
 * for each variation, do as little as possible with as little as possible in order to achieve the same result.
 
+This works on a Mac. Specifically, it means that the commands required to get access to the Kubernetes cluster running in minikube running in Docker on a Mac are included.
 
-This works on a Mac. In particular, it means that the commands required to get access to the Kubernetes cluster running in minikube running in Docker on a Mac are included.
+# Prerequisites
+
+* `pnpm` and `node` installed
+* docker (tested with version 24.0.2)
+* docker compose (usually going to come with docker) (tested with version 2.18.1)
+* [minikube](https://minikube.sigs.k8s.io/docs/start/) (tested with minikube version: v1.30.1)
+* kubectl on the path
+    * try `brew install kubectl`
+* istioctl on the path.
+    * try downloading as per [ISTIO getting started](https://istio.io/latest/docs/setup/getting-started/), but only go as far as getting `istioctl` on the path.
+
 
 # The System
+
+The fake system that is used is a very simple backend-for-front-end REST api (bff-service) that can get data from a service REST api (data-service). The UI Client (simulator) that will be used throughout is curl.
 
 ```mermaid
 C4Container
     title Simplified Multi-Service System
 
-    System_Ext(ui_client, "UI Client")
+    System_Ext(ui_client, "UI Client (curl)")
     Container(bff_api, "bff-service", "Backend for frontend")
     Container(backend_api, "data-service", "Resource REST api")
  
@@ -30,6 +45,8 @@ C4Container
 ```
 
 # Raw local
+
+Run the services up locally. In this variation, the services are running using programs installed locally on the machine (pnpm, node).
 
 ```
 cd bff-service
@@ -43,6 +60,7 @@ pnpm install
 node app.js
 ```
 
+And check:
 ```
 curl localhost:3000
 curl localhost:3000/data
@@ -51,13 +69,9 @@ curl localhost:4000
 curl localhost:4000/data
 ```
 
-# Prerequisites
-
-* docker (tested with version 24.0.2)
-* docker compose (usually going to come with docker) (tested with version 2.18.1)
-* [minikube](https://minikube.sigs.k8s.io/docs/start/) (tested with minikube version: v1.30.1)
-
 # Docker edition:
+
+The services can also be build into docker containers, then run within the docker containers. In this variation, the services are running within a docker container, and a bridge network is created through which the services communicate.
 
 ```
 
@@ -87,6 +101,10 @@ docker stop bff-service data-service
 
 # Docker Compose Edition
 
+This is basically the same as the docker edition, but using `docker compose` to run up the containers and network.
+
+One thing to note here is that the name of the DATA_SOURCE_HOST is now 'data', because that is the name of the data service in the docker-compose.yml file. What is holding everything together now is the identification of things within the docker-compose file. It isn't a service discovery service, but the docker-compose.yml file is serving the role of specifying how to discover the services on the network.
+
 ```
 cd k8-istio-intro
 docker compose up -d
@@ -96,14 +114,11 @@ curl localhost:3000/data
 docker compose down
 ```
 
-One thing to note here is that the name of the DATA_SOURCE_HOST is now 'data', because that is the name of the data service in the docker-compose.yml file. What is holding everything together now is the identification of things within the docker-compose file. It isn't a service discovery service, but the docker-compose.yml file is serving the role of specifying how to discover the services on the network.
-
 # Kubernetes edition
 
-## Prerequisites
+The same docker containers build previously are loaded into minikube, and the services are run within kubernetes.
 
-* kubectl on the path
-    * try `brew install kubectl`
+Note that access to the bff-service is accessed by creating it as a nodeport service and `minikube service ...`
 
 ```
 minikube start 
@@ -119,6 +134,7 @@ kubectl apply -f data-service-config.yaml
 kubectl apply -f data-service.yaml
 kubectl apply -f bff-service-nodeport.yaml
 minikube service bff-service --url
+
 # then, using the host:port provided...
 
 curl 127.0.0.1:57485
@@ -130,11 +146,11 @@ minikube delete
 
 # ISTIO Edition
 
-## Prerequisites
+This version creates essentially the same things as the kubernetes service, but now includes ISTIO.
 
-* istioctl on the path.
-    * try downloading as per [ISTIO getting started](https://istio.io/latest/docs/setup/getting-started/), but only go as far as getting `istioctl` on the path.
-
+The main differences are:
+* access to bff-service is now via istio-ingress-gateway
+* there are two data-services, the original (data-service) and a new one (data-service-new). This illustrates using data-service-virtual to split traffic between the two data services based on a header.
 
 ```
 minikube start --memory=16384 --cpus=4 --kubernetes-version=v1.26.1
