@@ -1,0 +1,11 @@
+services:
+    bff:
+      image: "bff-service:1"
+      ports:
+        - "3000:3000"
+      environment:
+        - DATA_SOURCE_PROTOCOL=http
+        - DATA_SOURCE_HOST=data
+        - DATA_SOURCE_PORT=4000
+    data:
+      image: "data-service:1"
