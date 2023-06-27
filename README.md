@@ -1,4 +1,4 @@
-# Various Service Deploymen ts
+# Various Service Deployments
 
 This illustrates running the same basic system of a pseudo backend-for-front-end api getting data from a data service in 5 different ways:
 
