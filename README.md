@@ -181,14 +181,18 @@ curl http://127.0.01:80/data -H "bff-version: new"
 # Resources
 
 [Kubernetes crash course](https://www.youtube.com/watch?v=s_o8dwzRlu4)
+
     * In just over 1 hour, this course covers the key concepts required to understand most of what is covered here.
 
 [Extended Kubernetes not-so-crash course](https://www.youtube.com/watch?v=X48VuDVv0do)
+
     * In just over 4 hours, this course fills in quite a bit more detail beyond the 1 hour course.
 
 [ISTO Documentation](https://istio.io/latest/)
+
     * Having given up in frustration at finding a very basic ISTIO intro tutorial that was for the current version and actually worked, I found the ISTIO documentation the best place to start.
 
 [k9s](https://k9scli.io/)
+
     * Purely optional, but I found k9s helpful in poking around what was going on in the kubernetes cluster. It's closely aligned to the kubectl cli, but I'd suggest not relying on it too much, be familiar with the kubectl cli.
 
